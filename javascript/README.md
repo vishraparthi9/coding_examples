@@ -1,6 +1,6 @@
 
 
-## Things to know
+## Basics
 
 * Javascript is Case sensitive
 * Use camelCase for variables and function names
@@ -43,3 +43,38 @@ if (condition) {
     * Copy of an array: `<array-name>.slice()`
     * Index of an element: `<array-name>.indexOf(<element-t-search>, <index-to-start-searching>)`
     * Join elements in array: `<array-name>.join(<separator>)`
+* Three types of functions: `Named functions`, `Anonymous functions` and `immediately invoked function expressions`.
+```
+function <name>(<parameters>) {
+    Do something
+}
+```
+* Object constructor definition:
+```
+function <ClassName-first letter uppercase>(<parameters>) {
+    <assignments and methods>
+}
+```
+* Dot and bracket notation: in order to access properties of an object, either of these can be used. For e.g:
+```
+function Course(title, instructor) {
+    this.title = title;
+    this.instructor = instructor;
+}
+course1 = new Course("JavaScript", "xyz")
+```
+Here course1.title or course1.instructor can be used whereas, if Course has another attribute, say `count-of-students`. This is when it gets tricky.
+If you try to get value of `count-of-students` using course1.count-of-students, JS tries to do an arithmetic operation and throws an error in which case, it is recommended to use course1["count-of-students"].
+* A **closure** is a feature in JavaScript where an inner function has access to the outer (enclosing) function’s variables — a scope chain. The closure has three scope chains:
+        * it has access to its own scope — variables defined between its curly brackets
+        * it has access to the outer function’s variables
+        * it has access to the global variables
+
+
+## DOM Basics
+
+* The document inside the browser window has its own object model called DOM (Document Object Model). DOM is the model that forms the current webpage.
+* Target elements in the DOM:
+        * Properties: document.title, document.body, document.url etc.
+        * Methods: `document.getElementById()`, `document.getElementByClassName()`, `document.getElementByTagName()`, `document.getElementByTagNameNS()`.
+        * The above methods are not efficient and become cumbersome in order to retrieve deeper elements. The following two methods addresses that issue: `document.querySelector()` and `document.querySelectorAll()`.
