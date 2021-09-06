@@ -36,8 +36,7 @@ def partition(elements, low, high, pivot_element):
     while elements[high] > elements[pivot]:
       if (pivot_element == "last" and high > low) or (pivot_element == "first"):
         high = high - 1
-        if high <= low: break
-      else: break
+      if high <= low: break
 
     if high <= low:
       elements[high], elements[pivot] = elements[pivot], elements[high]
