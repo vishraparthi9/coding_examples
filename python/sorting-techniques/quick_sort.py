@@ -16,17 +16,13 @@ import sys
 def partition(elements, low, high, pivot_element):
   if pivot_element == "first":
     pivot = low - 1
-  if pivot_element == "last":
+  elif pivot_element == "last":
     pivot = high + 1
-
-  print("pivot_pos, pivot:", pivot, elements[pivot])
-  print("low:", low, "high: ", high)
   
   while True:
 
     ## Move low until you find a number greater than pivot
     while elements[low] < elements[pivot]:
-      print(low, elements[low])
       low = low + 1
       if low >= high: break
 
@@ -46,10 +42,8 @@ def partition(elements, low, high, pivot_element):
 
 
 def quick_sort(elements, low, high, pivot_element):
-  print("low & high in quick_sort: ", low, high)
   if low <= high:
     pivot_position = partition(elements, low, high, pivot_element)
-    print(elements)
 
     if pivot_element == "first":
       quick_sort(elements, low, pivot_position-1, pivot_element)
@@ -62,6 +56,6 @@ def quick_sort(elements, low, high, pivot_element):
 if __name__=="__main__":
   elements = [ int(x) for x in sys.argv[1:] ]
   #print(elements)
-  quick_sort(elements, 1, len(elements)-1, "first")
-  #quick_sort(elements, 0, len(elements)-2, "last")
+  #quick_sort(elements, 1, len(elements)-1, "first")
+  quick_sort(elements, 0, len(elements)-2, "last")
   print("After sorting:", elements)
