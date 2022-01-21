@@ -1,4 +1,5 @@
 import os
+import argparse
 from openpyxl import Workbook, load_workbook
 from openpyxl.utils.cell import coordinate_from_string, column_index_from_string
 
@@ -23,13 +24,9 @@ def getRangeOfRowCols(xlRange):
   rangeTuples = []
 
   start,end = xlRange.split(":")
-
   startCoord = coordinate_from_string(start)
-
   startCol, startRow = column_index_from_string(startCoord[0]), startCoord[1]
-
   endCoord = coordinate_from_string(end)
-
   endCol, endRow =  column_index_from_string(endCoord[0]), endCoord[1]
 
   rangeTuples.append((startRow, endRow))
@@ -64,31 +61,86 @@ def pasteRange(startCol, startRow, endCol, endRow, sheetReceiving,copiedData):
             countCol += 1
         countRow += 1
 
-def copyCellsFromSrcToTgt(sw, sws, sr, tw, tws, tr):
+def buildTargetRange(srcCoords, tr):
+
+  rangeTuples = []
+
+  startCoord = coordinate_from_string(tr)
+  startCol, startRow = column_index_from_string(startCoord[0]), startCoord[1]
+  endCol, endRow = startCol + srcCoords[1][1] - srcCoords[1][0], startRow + srcCoords[0][1] - srcCoords[0][0]
+  rangeTuples.append((startRow, endRow))
+  rangeTuples.append((startCol, endCol))
+
+  return rangeTuples     
+
+def getNewTargetCell(tr, rows_to_be_added):
+
+  x = coordinate_from_string(tr)
+  y = x[1] + rows_to_be_added
+  return x[0] + str(y)
+
+def copyCellsFromSrcToTgt(sw, tw, tws, tr, ml):
 
   sWb = load_workbook(sw)
   tWb = load_workbook(tw)
 
-  srcSheet = sWb[sws]
-  tgtSheet = tWb[tws]
+  for m in ml:
+    srcSheet = sWb[m[0]]
+    tgtSheet = tWb[tws]
 
-  srcRangeDetails = getRangeOfRowCols(sr)
-  tgtRangeDetails = getRangeOfRowCols(tr)
+    srcRangeDetails = getRangeOfRowCols(m[1])
+    tgtRangeDetails = buildTargetRange(srcRangeDetails, tr)
 
-  rangeSelected = copyRange(srcRangeDetails[1][0], srcRangeDetails[0][0], srcRangeDetails[1][1], srcRangeDetails[0][1], srcSheet)
-  pasteRange(tgtRangeDetails[1][0], tgtRangeDetails[0][0], tgtRangeDetails[1][1], tgtRangeDetails[0][1], tgtSheet, rangeSelected)
-  
+    rows_to_be_added = srcRangeDetails[0][1] - srcRangeDetails[0][0] + 1
+
+    rangeSelected = copyRange(srcRangeDetails[1][0], srcRangeDetails[0][0], srcRangeDetails[1][1], srcRangeDetails[0][1], srcSheet)
+    if m[2]:
+      tgtSheet.insert_rows(tgtRangeDetails[0][0]+1, amount = rows_to_be_added)
+    pasteRange(tgtRangeDetails[1][0], tgtRangeDetails[0][0], tgtRangeDetails[1][1], tgtRangeDetails[0][1], tgtSheet, rangeSelected)
+
+    tr = getNewTargetCell(tr, rows_to_be_added)
+    
   tWb.save(tw)
 
+def returnMapFileDetails(mapping_file):
+
+  map_details = []
+
+  wb = load_workbook(mapping_file)
+  ws = wb["Sheet1"]
+
+  for r1 in range(1, ws.max_row + 1):
+      if ws.cell(row=r1, column=1).value is not None:
+        r = (ws.cell(row=r1, column=1).value, ws.cell(row=r1, column=2).value, ws.cell(row=r1, column=3).value)
+        map_details.append(r)
+
+  return map_details
+
 if __name__ == "__main__":
-  src_workbook = input("Enter path and name of src workbook: ")
-  src_worksheet = input("Enter name of the src sheet: ")
-  src_range = input("Enter the range of src cells: ")
+  #src_workbook = input("Enter path and name of src workbook: ")
+  #src_worksheet = input("Enter name of the src sheet: ")
+  #src_range = input("Enter the range of src cells: ")
 
-  tgt_workbook = input("Enter path and name of target workbook: ")
-  tgt_worksheet = input("Enter name of the target sheet: ")
-  tgt_range = input("Enter the range of target cells: ")
+  #tgt_workbook = input("Enter path and name of target workbook: ")
+  #tgt_worksheet = input("Enter name of the target sheet: ")
+  #tgt_range = input("Enter the range of target cells: ")
 
-  createTargetIfNotExists(tgt_workbook, tgt_worksheet)
+  # create parser
+  parser = argparse.ArgumentParser()
 
-  copyCellsFromSrcToTgt(src_workbook, src_worksheet, src_range, tgt_workbook, tgt_worksheet, tgt_range)
+  # add arguments to the parser
+  parser.add_argument("src_workbook", help="Enter path and name of src workbook")
+  parser.add_argument("tgt_workbook", help="Enter name of the target workbook")
+  parser.add_argument("tgt_worksheet", help="Enter name of the target worksheet")
+  parser.add_argument("tgt_startcell", help="Enter cell name to start filling in target worksheet")
+  parser.add_argument("mapping_file", help="Enter file with sheet mappings")
+
+  # parse the arguments
+  args = parser.parse_args()
+
+  createTargetIfNotExists(args.tgt_workbook, args.tgt_worksheet)
+
+  mapping_list = returnMapFileDetails(args.mapping_file)
+  #print(mapping_list)
+
+  copyCellsFromSrcToTgt(args.src_workbook, args.tgt_workbook, args.tgt_worksheet, args.tgt_startcell, mapping_list)
